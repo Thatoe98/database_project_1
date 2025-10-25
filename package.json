@@ -1,0 +1,21 @@
+{
+  "name": "blood-inventory-management-system",
+  "version": "1.0.0",
+  "description": "A comprehensive Blood Inventory Management System with HTML, CSS, JavaScript frontend and Supabase backend",
+  "main": "index.html",
+  "scripts": {
+    "dev": "echo 'Open index.html in your browser or use Live Server extension'",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "blood",
+    "inventory",
+    "management",
+    "healthcare",
+    "supabase"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patients - Blood Inventory Management System</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩸</text></svg>">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <button class="menu-toggle" aria-label="Toggle Menu">☰</button>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="logo-icon">🩸</div>
+                    <div class="logo-text"><h1>Thatoe's </h1><p>Blood Inventory Management System</p></div>
+                </div>
+            </div>
+            <nav class="nav-menu">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <a href="index.html" class="nav-link"><span class="nav-icon">📊</span><span>Dashboard</span></a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Management</div>
+                    <a href="donors.html" class="nav-link"><span class="nav-icon">👥</span><span>Donors</span></a>
+                    <a href="donations.html" class="nav-link"><span class="nav-icon">💉</span><span>Donations</span></a>
+                    <a href="inventory.html" class="nav-link"><span class="nav-icon">🏥</span><span>Inventory</span></a>
+                    <a href="hospitals.html" class="nav-link"><span class="nav-icon">🏨</span><span>Hospitals</span></a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Operations</div>
+                    <a href="campaigns.html" class="nav-link"><span class="nav-icon">⛺</span><span>Campaigns</span></a>
+                    <a href="patients.html" class="nav-link active"><span class="nav-icon">🤒</span><span>Patients</span></a>
+                </div>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <header class="page-header">
+                <div class="header-content">
+                    <div class="page-title">
+                        <div><h1>Patients</h1>
+                        <div class="breadcrumb"><span>Home</span><span>/</span><span>Patients</span></div></div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="showToast('Feature coming soon!', 'info')">➕ Register Patient</button>
+                    </div>
+                </div>
+            </header>
+            <div class="page-content">
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title">Patients</h2></div>
+                    <div class="card-body">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🚧</div>
+                            <h3>Page Under Construction</h3>
+                            <p>This page is being developed. Please refer to PAGE_CREATION_GUIDE.md for implementation details.</p>
+                            <a href="index.html" class="btn btn-primary" style="margin-top: 1rem; text-decoration: none;">← Back to Dashboard</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div class="toast-container"></div>
+    
+    <!-- For local development: Uncomment the line below after creating env-local.js -->
+    <script src="env-local.js"></script>
+    
+    <script>
+        // Fallback configuration if env-local.js is not loaded
+        if (typeof window.ENV === 'undefined') {
+            window.ENV = {
+                SUPABASE_URL: 'YOUR_SUPABASE_URL',
+                SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY'
+            };
+        }
+    </script>
+    <script src="js/config.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Blood Inventory Management System - Manage blood donations, inventory, and requests efficiently">
+    <meta name="keywords" content="blood bank, inventory management, healthcare, donations">
+    <title>Dashboard - Blood Inventory Management System</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩸</text></svg>">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="menu-toggle" aria-label="Toggle Menu">☰</button>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="logo-icon">🩸</div>
+                    <div class="logo-text">
+                        <h1>Thatoe's Blood Bank</h1>
+                        <p>Management System</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <a href="index.html" class="nav-link active">
+                        <span class="nav-icon">📊</span>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Management</div>
+                    <a href="donors.html" class="nav-link">
+                        <span class="nav-icon">👥</span>
+                        <span>Donors</span>
+                    </a>
+                    <a href="donations.html" class="nav-link">
+                        <span class="nav-icon">💉</span>
+                        <span>Donations</span>
+                    </a>
+                    <a href="inventory.html" class="nav-link">
+                        <span class="nav-icon">🏥</span>
+                        <span>Inventory</span>
+                    </a>
+                    <a href="hospitals.html" class="nav-link">
+                        <span class="nav-icon">🏨</span>
+                        <span>Hospitals</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Operations</div>
+                    <a href="campaigns.html" class="nav-link">
+                        <span class="nav-icon">⛺</span>
+                        <span>Campaigns</span>
+                    </a>
+                    <a href="patients.html" class="nav-link">
+                        <span class="nav-icon">🤒</span>
+                        <span>Patients</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Page Header -->
+            <header class="page-header">
+                <div class="header-content">
+                    <div class="page-title">
+                        <div>
+                            <h1>Dashboard</h1>
+                            <div class="breadcrumb">
+                                <span>Home</span>
+                                <span>/</span>
+                                <span>Dashboard</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <div class="user-info">
+                            <div class="user-avatar">A</div>
+                            <div class="user-details">
+                                <div class="user-name">Admin User</div>
+                                <div class="user-role">System Administrator</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Statistics Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card primary">
+                        <div class="stat-header">
+                            <div class="stat-icon primary">👥</div>
+                        </div>
+                        <div class="stat-value" id="stat-donors">0</div>
+                        <div class="stat-label">Total Donors</div>
+                        <div class="stat-change positive">
+                            <span>↑ Active donors</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card success">
+                        <div class="stat-header">
+                            <div class="stat-icon success">🩸</div>
+                        </div>
+                        <div class="stat-value" id="stat-units">0</div>
+                        <div class="stat-label">Available Blood Units</div>
+                        <div class="stat-change positive">
+                            <span>↑ In stock</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card warning">
+                        <div class="stat-header">
+                            <div class="stat-icon warning">�</div>
+                        </div>
+                        <div class="stat-value" id="stat-patients">0</div>
+                        <div class="stat-label">Total Patients</div>
+                        <div class="stat-change">
+                            <span>Registered patients</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon primary">📅</div>
+                        </div>
+                        <div class="stat-value" id="stat-campaigns">0</div>
+                        <div class="stat-label">Upcoming Campaigns</div>
+                        <div class="stat-change">
+                            <span>Scheduled events</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Low Stock Alerts & Quick Actions Grid -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                    <!-- Low Stock Alerts -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">🚨 Low Stock Alerts</h2>
+                        </div>
+                        <div class="card-body" id="low-stock-container">
+                            <div class="empty-state" style="padding: 2rem;">
+                                <div class="empty-state-icon">⏳</div>
+                                <p>Loading alerts...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">⚡ Quick Actions</h2>
+                        </div>
+                        <div class="card-body">
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <a href="donors.html" class="btn btn-primary" style="text-decoration: none;">
+                                    <span>👥</span> Add New Donor
+                                </a>
+                                <a href="donations.html" class="btn btn-success" style="text-decoration: none;">
+                                    <span>💉</span> Record Donation
+                                </a>
+                                <a href="patients.html" class="btn btn-warning" style="text-decoration: none;">
+                                    <span>�</span> Register Patient
+                                </a>
+                                <a href="campaigns.html" class="btn btn-secondary" style="text-decoration: none;">
+                                    <span>📅</span> Schedule Campaign
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Blood Inventory Summary -->
+                <div class="card" style="margin-bottom: 2rem;">
+                    <div class="card-header">
+                        <h2 class="card-title">🩸 Blood Inventory Summary</h2>
+                        <a href="inventory.html" class="btn btn-outline btn-sm">View Details →</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="blood-type-grid" id="inventory-summary">
+                            <!-- Will be populated dynamically -->
+                            <div class="empty-state">
+                                <div class="empty-state-icon">⏳</div>
+                                <p>Loading inventory...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">📊 Recent Activity</h2>
+                    </div>
+                    <div class="card-body">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                            <!-- Recent Donations -->
+                            <div>
+                                <h3 style="font-size: 1rem; margin-bottom: 1rem; color: var(--gray-700);">Recent Donations</h3>
+                                <div id="recent-donations" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                    <div class="empty-state" style="padding: 1rem;">
+                                        <p style="font-size: 0.875rem;">Loading...</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Recent Patients -->
+                            <div>
+                                <h3 style="font-size: 1rem; margin-bottom: 1rem; color: var(--gray-700);">Recent Patients</h3>
+                                <div id="recent-patients" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                    <div class="empty-state" style="padding: 1rem;">
+                                        <p style="font-size: 0.875rem;">Loading...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Container (for notifications) -->
+    <div class="toast-container"></div>
+
+    <!-- Scripts -->
+    <!-- For local development: Copy env-local.example.js to env-local.js and add your credentials -->
+    <!-- For production: Vercel will inject environment variables -->
+    <script>
+        // Default environment configuration
+        // Override by creating env-local.js with your actual credentials
+        if (typeof window.ENV === 'undefined') {
+            window.ENV = {
+                SUPABASE_URL: 'https://fiowdrewzweebztcxjnq.supabase.co',
+                SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZpb3dkcmV3endlZWJ6dGN4am5xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEzNzM0MTcsImV4cCI6MjA3Njk0OTQxN30.IFuHriDNMa2CXHD4YAVZziBVEA6y-unVJ_WXHexZtbs'
+            };
+        }
+    </script>
+    <script src="env-local.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/main.js"></script>
+    
+    <script>
+        // Dashboard specific functionality
+        let inventorySubscription = null;
+
+        /**
+         * Initialize dashboard
+         */
+        async function initDashboard() {
+            try {
+                showLoading();
+                
+                // Check Supabase connection
+                const isConnected = await checkSupabaseConnection();
+                if (!isConnected) {
+                    throw new Error('Unable to connect to database. Please check your configuration.');
+                }
+
+                // Load all dashboard data
+                await Promise.all([
+                    loadDashboardStats(),
+                    loadInventorySummary(),
+                    loadLowStockAlerts(),
+                    loadRecentActivity()
+                ]);
+
+                // Setup real-time inventory updates
+                setupRealtimeUpdates();
+
+                hideLoading();
+                showToast('Dashboard loaded successfully', 'success');
+            } catch (error) {
+                hideLoading();
+                console.error('Error initializing dashboard:', error);
+                showToast(error.message || 'Failed to load dashboard', 'error');
+                
+                // Show error state in stats
+                document.getElementById('stat-donors').textContent = '-';
+                document.getElementById('stat-units').textContent = '-';
+                document.getElementById('stat-patients').textContent = '-';
+                document.getElementById('stat-campaigns').textContent = '-';
+            }
+        }
+
+        /**
+         * Load dashboard statistics
+         */
+        async function loadDashboardStats() {
+            try {
+                const stats = await getDashboardStats();
+                
+                document.getElementById('stat-donors').textContent = stats.totalDonors;
+                document.getElementById('stat-units').textContent = stats.totalUnits;
+                document.getElementById('stat-patients').textContent = stats.totalPatients;
+                document.getElementById('stat-campaigns').textContent = stats.upcomingCampaigns;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+                throw error;
+            }
+        }
+
+        /**
+         * Load inventory summary
+         */
+        async function loadInventorySummary() {
+            try {
+                const inventory = await fetchBloodInventory();
+                const container = document.getElementById('inventory-summary');
+                
+                if (!inventory || inventory.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><p>No inventory data available</p></div>';
+                    return;
+                }
+
+                container.innerHTML = inventory.map(item => {
+                    const stockClass = getStockLevelClass(item.available_units, item.minimum_threshold);
+                    const stockText = getStockLevelText(item.available_units, item.minimum_threshold);
+                    
+                    return `
+                        <div class="blood-type-card ${stockClass}-stock">
+                            <div class="blood-type-header">
+                                <div class="blood-type-label">${item.blood_type}</div>
+                                <span class="badge badge-${stockClass}">${stockText}</span>
+                            </div>
+                            <div class="blood-type-units">${item.available_units}</div>
+                            <div class="progress">
+                                <div class="progress-bar ${stockClass}" style="width: ${Math.min(100, (item.available_units / item.minimum_threshold) * 100)}%"></div>
+                            </div>
+                            <div class="blood-type-details">
+                                <span>Reserved: ${item.reserved_units}</span>
+                                <span>Total: ${item.total_units}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading inventory summary:', error);
+                throw error;
+            }
+        }
+
+        /**
+         * Load low stock alerts
+         */
+        async function loadLowStockAlerts() {
+            try {
+                const lowStock = await getLowStockAlerts();
+                const container = document.getElementById('low-stock-container');
+                
+                if (!lowStock || lowStock.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state" style="padding: 2rem;">
+                            <div class="empty-state-icon">✓</div>
+                            <p style="color: var(--success-green);">All blood types are well stocked!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = lowStock.map(item => {
+                    const stockClass = getStockLevelClass(item.available_units, item.minimum_threshold);
+                    
+                    return `
+                        <div class="alert alert-${stockClass}" style="margin-bottom: 0.75rem;">
+                            <strong>${item.blood_type}</strong> - Only ${item.available_units} units available
+                            ${item.available_units < 5 ? ' <strong>(CRITICAL)</strong>' : ''}
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading low stock alerts:', error);
+                document.getElementById('low-stock-container').innerHTML = `
+                    <div class="alert alert-danger">Error loading alerts</div>
+                `;
+            }
+        }
+
+        /**
+         * Load recent activity
+         */
+        async function loadRecentActivity() {
+            try {
+                const activity = await getRecentActivity(5);
+                
+                // Recent donations
+                const donationsContainer = document.getElementById('recent-donations');
+                if (activity.donations && activity.donations.length > 0) {
+                    donationsContainer.innerHTML = activity.donations.map(donation => `
+                        <div style="padding: 0.75rem; background: var(--gray-50); border-radius: var(--radius-md); border-left: 3px solid var(--success-green);">
+                            <div style="font-weight: 600; font-size: 0.875rem;">${donation.donors?.full_name || 'Unknown'}</div>
+                            <div style="font-size: 0.75rem; color: var(--gray-600); margin-top: 0.25rem;">
+                                ${donation.blood_type} • ${formatDateReadable(donation.donation_date)}
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    donationsContainer.innerHTML = '<p style="font-size: 0.875rem; color: var(--gray-500);">No recent donations</p>';
+                }
+
+                // Recent patients
+                const patientsContainer = document.getElementById('recent-patients');
+                if (activity.patients && activity.patients.length > 0) {
+                    patientsContainer.innerHTML = activity.patients.map(patient => `
+                        <div style="padding: 0.75rem; background: var(--gray-50); border-radius: var(--radius-md); border-left: 3px solid var(--info-blue);">
+                            <div style="font-weight: 600; font-size: 0.875rem;">${patient.hospitals?.hospital_name || 'Unknown'}</div>
+                            <div style="font-size: 0.75rem; color: var(--gray-600); margin-top: 0.25rem;">
+                                ${patient.blood_type} • 
+                                <span class="badge ${getStatusBadgeClass(patient.status)}" style="font-size: 0.65rem;">${patient.status}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    patientsContainer.innerHTML = '<p style="font-size: 0.875rem; color: var(--gray-500);">No recent patients</p>';
+                }
+            } catch (error) {
+                console.error('Error loading recent activity:', error);
+            }
+        }
+
+        /**
+         * Setup real-time inventory updates
+         */
+        function setupRealtimeUpdates() {
+            try {
+                inventorySubscription = subscribeToInventoryChanges((payload) => {
+                    console.log('Inventory updated:', payload);
+                    // Reload inventory and stats
+                    loadInventorySummary();
+                    loadDashboardStats();
+                    loadLowStockAlerts();
+                    showToast('Inventory updated', 'info', 2000);
+                });
+            } catch (error) {
+                console.error('Error setting up real-time updates:', error);
+            }
+        }
+
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            // Wait for Supabase to initialize
+            setTimeout(initDashboard, 500);
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (inventorySubscription) {
+                unsubscribe(inventorySubscription);
+            }
+        });
+    </script>
+</body>
+</html>

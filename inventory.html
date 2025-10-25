@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blood Inventory - Blood Inventory Management System</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩸</text></svg>">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <button class="menu-toggle" aria-label="Toggle Menu">☰</button>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="logo-icon">🩸</div>
+                    <div class="logo-text">
+                        <h1>Thtoe's</h1>
+                        <p>Blood Inventory Management System</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <a href="index.html" class="nav-link"><span class="nav-icon">📊</span><span>Dashboard</span></a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Management</div>
+                    <a href="donors.html" class="nav-link"><span class="nav-icon">👥</span><span>Donors</span></a>
+                    <a href="donations.html" class="nav-link"><span class="nav-icon">💉</span><span>Donations</span></a>
+                    <a href="inventory.html" class="nav-link active"><span class="nav-icon">🏥</span><span>Inventory</span></a>
+                    <a href="hospitals.html" class="nav-link"><span class="nav-icon">🏨</span><span>Hospitals</span></a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Operations</div>
+                    <a href="campaigns.html" class="nav-link"><span class="nav-icon">⛺</span><span>Campaigns</span></a>
+                    <a href="patients.html" class="nav-link"><span class="nav-icon">🤒</span><span>Patients</span></a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="page-header">
+                <div class="header-content">
+                    <div class="page-title">
+                        <div>
+                            <h1>Blood Inventory</h1>
+                            <div class="breadcrumb"><span>Home</span><span>/</span><span>Inventory</span></div>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" onclick="printPage()">
+                            🖨️ Print Report
+                        </button>
+                        <button class="btn btn-primary" onclick="refreshInventory()">
+                            🔄 Refresh
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <!-- Summary Statistics -->
+                <div class="stats-grid" style="margin-bottom: 2rem;">
+                    <div class="stat-card success">
+                        <div class="stat-icon success">🩸</div>
+                        <div class="stat-value" id="totalUnits">0</div>
+                        <div class="stat-label">Total Units</div>
+                    </div>
+
+                    <div class="stat-card primary">
+                        <div class="stat-icon primary">✅</div>
+                        <div class="stat-value" id="availableUnits">0</div>
+                        <div class="stat-label">Available Units</div>
+                    </div>
+
+                    <div class="stat-card warning">
+                        <div class="stat-icon warning">⏳</div>
+                        <div class="stat-value" id="reservedUnits">0</div>
+                        <div class="stat-label">Reserved Units</div>
+                    </div>
+
+                    <div class="stat-card danger">
+                        <div class="stat-icon danger">⚠️</div>
+                        <div class="stat-value" id="lowStockCount">0</div>
+                        <div class="stat-label">Low Stock Types</div>
+                    </div>
+                </div>
+
+                <!-- Blood Type Cards -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Blood Stock by Type</h2>
+                        <span class="text-muted" style="font-size: 0.875rem;">Last Updated: <span id="lastUpdated">-</span></span>
+                    </div>
+                    <div class="card-body">
+                        <div class="blood-type-grid" id="inventoryGrid">
+                            <div class="empty-state">
+                                <div class="loading"></div>
+                                <p>Loading inventory...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Inventory Table -->
+                <div class="card" style="margin-top: 2rem;">
+                    <div class="card-header">
+                        <h2 class="card-title">Detailed Inventory</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Blood Type</th>
+                                        <th>Total Units</th>
+                                        <th>Available Units</th>
+                                        <th>Reserved Units</th>
+                                        <th>Minimum Threshold</th>
+                                        <th>Status</th>
+                                        <th>Last Updated</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inventoryTableBody">
+                                    <tr>
+                                        <td colspan="7" style="text-align: center; padding: 2rem;">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script>
+        // For local development: Create env-local.js with your Supabase credentials
+        if (typeof window.ENV === 'undefined') {
+            window.ENV = {
+                SUPABASE_URL: 'YOUR_SUPABASE_URL',
+                SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY'
+            };
+        }
+    </script>
+    <script src="env-local.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/main.js"></script>
+    
+    <script>
+        let inventory = [];
+        let inventorySubscription = null;
+
+        async function loadInventory() {
+            try {
+                showLoading();
+                inventory = await fetchBloodInventory();
+                displayInventory();
+                displayInventoryTable();
+                updateStatistics();
+                hideLoading();
+                showToast('Inventory loaded successfully', 'success', 2000);
+            } catch (error) {
+                hideLoading();
+                console.error('Error loading inventory:', error);
+                showToast('Failed to load inventory: ' + error.message, 'error');
+            }
+        }
+
+        function displayInventory() {
+            const grid = document.getElementById('inventoryGrid');
+            
+            if (!inventory || inventory.length === 0) {
+                grid.innerHTML = '<div class="empty-state"><p>No inventory data available</p></div>';
+                return;
+            }
+
+            grid.innerHTML = inventory.map(item => {
+                const stockClass = getStockLevelClass(item.available_units, item.minimum_threshold);
+                const stockText = getStockLevelText(item.available_units, item.minimum_threshold);
+                const percentage = Math.min(100, (item.available_units / Math.max(item.minimum_threshold, 1)) * 100);
+                
+                return `
+                    <div class="blood-type-card ${stockClass}-stock">
+                        <div class="blood-type-header">
+                            <div class="blood-type-label">${item.blood_type}</div>
+                            <span class="badge badge-${stockClass}">${stockText}</span>
+                        </div>
+                        
+                        <div class="blood-type-units">${item.available_units}</div>
+                        <div style="font-size: 0.75rem; color: var(--gray-600); text-align: center; margin-bottom: 1rem;">
+                            Available Units
+                        </div>
+                        
+                        <div class="progress" style="margin-bottom: 1rem;">
+                            <div class="progress-bar ${stockClass}" style="width: ${percentage}%"></div>
+                        </div>
+                        
+                        <div class="blood-type-details">
+                            <div>
+                                <div style="font-size: 0.65rem; color: var(--gray-500);">Total</div>
+                                <div style="font-weight: 600;">${item.total_units}</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.65rem; color: var(--gray-500);">Reserved</div>
+                                <div style="font-weight: 600;">${item.reserved_units}</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.65rem; color: var(--gray-500);">Min</div>
+                                <div style="font-weight: 600;">${item.minimum_threshold}</div>
+                            </div>
+                        </div>
+                        
+                        ${item.available_units < 5 ? 
+                            '<div style="margin-top: 1rem; padding: 0.5rem; background: var(--danger-red-light); border-radius: var(--radius-sm); text-align: center; font-size: 0.75rem; color: var(--danger-red); font-weight: 600;">⚠️ CRITICAL</div>' 
+                            : ''}
+                    </div>
+                `;
+            }).join('');
+
+            // Update last updated timestamp
+            const latestUpdate = inventory.reduce((latest, item) => {
+                const itemDate = new Date(item.last_updated);
+                return itemDate > latest ? itemDate : latest;
+            }, new Date(0));
+            
+            document.getElementById('lastUpdated').textContent = formatDateTime(latestUpdate);
+        }
+
+        function displayInventoryTable() {
+            const tbody = document.getElementById('inventoryTableBody');
+            
+            if (!inventory || inventory.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><p>No data available</p></td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = inventory.map(item => {
+                const stockClass = getStockLevelClass(item.available_units, item.minimum_threshold);
+                const stockText = getStockLevelText(item.available_units, item.minimum_threshold);
+                
+                return `
+                    <tr>
+                        <td><strong style="font-size: 1.1rem;">${item.blood_type}</strong></td>
+                        <td><strong>${item.total_units}</strong></td>
+                        <td><strong style="color: var(--${stockClass === 'danger' ? 'danger-red' : stockClass === 'warning' ? 'warning-yellow' : 'success-green'});">${item.available_units}</strong></td>
+                        <td>${item.reserved_units}</td>
+                        <td>${item.minimum_threshold}</td>
+                        <td><span class="badge badge-${stockClass}">${stockText}</span></td>
+                        <td>${formatDateTime(item.last_updated)}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateStatistics() {
+            const totalUnits = inventory.reduce((sum, item) => sum + item.total_units, 0);
+            const availableUnits = inventory.reduce((sum, item) => sum + item.available_units, 0);
+            const reservedUnits = inventory.reduce((sum, item) => sum + item.reserved_units, 0);
+            const lowStockCount = inventory.filter(item => item.available_units < item.minimum_threshold).length;
+
+            document.getElementById('totalUnits').textContent = totalUnits;
+            document.getElementById('availableUnits').textContent = availableUnits;
+            document.getElementById('reservedUnits').textContent = reservedUnits;
+            document.getElementById('lowStockCount').textContent = lowStockCount;
+        }
+
+        async function refreshInventory() {
+            await loadInventory();
+        }
+
+        function setupRealtimeUpdates() {
+            try {
+                inventorySubscription = subscribeToInventoryChanges((payload) => {
+                    console.log('Inventory changed:', payload);
+                    loadInventory();
+                });
+                console.log('Real-time updates enabled');
+            } catch (error) {
+                console.error('Error setting up real-time updates:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                loadInventory();
+                setupRealtimeUpdates();
+            }, 500);
+        });
+
+        window.addEventListener('beforeunload', () => {
+            if (inventorySubscription) {
+                unsubscribe(inventorySubscription);
+            }
+        });
+    </script>
+</body>
+</html>
