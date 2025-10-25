@@ -28,16 +28,12 @@
       "dest": "/hospitals.html"
     },
     {
-      "src": "/requests",
-      "dest": "/requests.html"
+      "src": "/campaigns",
+      "dest": "/campaigns.html"
     },
     {
-      "src": "/camps",
-      "dest": "/camps.html"
-    },
-    {
-      "src": "/transfusions",
-      "dest": "/transfusions.html"
+      "src": "/patients",
+      "dest": "/patients.html"
     }
   ],
   "headers": [
