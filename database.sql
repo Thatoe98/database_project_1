@@ -160,7 +160,7 @@ SELECT
     CURRENT_DATE - d.last_donation_date as days_since_last_donation,
     CASE 
         WHEN d.last_donation_date IS NOT NULL AND d.last_donation_date + INTERVAL '56 days' > CURRENT_DATE 
-        THEN (d.last_donation_date + INTERVAL '56 days') - CURRENT_DATE
+        THEN (d.last_donation_date + INTERVAL '56 days')::date - CURRENT_DATE
         ELSE 0
     END as days_until_eligible
 FROM donors d;
