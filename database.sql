@@ -48,6 +48,7 @@ CREATE TABLE donors (
     abo_group VARCHAR(3) NOT NULL CHECK (abo_group IN ('A', 'B', 'AB', 'O')),
     rh_factor VARCHAR(3) NOT NULL CHECK (rh_factor IN ('+', '-')),
     last_donation_date DATE,
+    city VARCHAR(50),
     eligibility_status VARCHAR(20) DEFAULT 'Eligible' CHECK (eligibility_status IN ('Eligible', 'Ineligible', 'Deferred')),
     notes TEXT,
     created_at TIMESTAMP DEFAULT NOW()
@@ -235,16 +236,16 @@ VALUES
 ON CONFLICT DO NOTHING;
 
 -- Sample Donors
-INSERT INTO donors (first_name, last_name, date_of_birth, sex, phone_number, email, abo_group, rh_factor, last_donation_date, eligibility_status, notes)
+INSERT INTO donors (first_name, last_name, date_of_birth, sex, phone_number, email, abo_group, rh_factor, last_donation_date, city, eligibility_status, notes)
 VALUES 
-    ('John', 'Smith', '1990-05-15', 'Male', '+1-234-567-8901', 'john.smith@email.com', 'O', '+', '2024-08-15', 'Eligible', NULL),
-    ('Emily', 'Johnson', '1985-08-22', 'Female', '+1-234-567-8902', 'emily.j@email.com', 'A', '+', '2024-09-10', 'Eligible', NULL),
-    ('Michael', 'Brown', '1992-03-10', 'Male', '+1-234-567-8903', 'michael.b@email.com', 'B', '+', '2024-07-20', 'Eligible', NULL),
-    ('Sarah', 'Davis', '1988-11-30', 'Female', '+1-234-567-8904', 'sarah.d@email.com', 'AB', '+', '2024-09-25', 'Eligible', NULL),
-    ('David', 'Wilson', '1995-01-18', 'Male', '+1-234-567-8905', 'david.w@email.com', 'O', '-', '2024-08-05', 'Eligible', NULL),
-    ('Jessica', 'Martinez', '1987-07-25', 'Female', '+1-234-567-8906', 'jessica.m@email.com', 'A', '-', '2024-09-15', 'Eligible', NULL),
-    ('James', 'Anderson', '1993-09-12', 'Male', '+1-234-567-8907', 'james.a@email.com', 'B', '-', '2024-08-28', 'Eligible', NULL),
-    ('Jennifer', 'Taylor', '1991-04-05', 'Female', '+1-234-567-8908', 'jennifer.t@email.com', 'AB', '-', '2024-09-20', 'Eligible', NULL)
+    ('John', 'Smith', '1990-05-15', 'Male', '+1-234-567-8901', 'john.smith@email.com', 'O', '+', '2024-08-15', 'New York', 'Eligible', NULL),
+    ('Emily', 'Johnson', '1985-08-22', 'Female', '+1-234-567-8902', 'emily.j@email.com', 'A', '+', '2024-09-10', 'Los Angeles', 'Eligible', NULL),
+    ('Michael', 'Brown', '1992-03-10', 'Male', '+1-234-567-8903', 'michael.b@email.com', 'B', '+', '2024-07-20', 'Chicago', 'Eligible', NULL),
+    ('Sarah', 'Davis', '1988-11-30', 'Female', '+1-234-567-8904', 'sarah.d@email.com', 'AB', '+', '2024-09-25', 'Houston', 'Eligible', NULL),
+    ('David', 'Wilson', '1995-01-18', 'Male', '+1-234-567-8905', 'david.w@email.com', 'O', '-', '2024-08-05', 'Phoenix', 'Eligible', NULL),
+    ('Jessica', 'Martinez', '1987-07-25', 'Female', '+1-234-567-8906', 'jessica.m@email.com', 'A', '-', '2024-09-15', 'New York', 'Eligible', NULL),
+    ('James', 'Anderson', '1993-09-12', 'Male', '+1-234-567-8907', 'james.a@email.com', 'B', '-', '2024-08-28', 'Los Angeles', 'Eligible', NULL),
+    ('Jennifer', 'Taylor', '1991-04-05', 'Female', '+1-234-567-8908', 'jennifer.t@email.com', 'AB', '-', '2024-09-20', 'Chicago', 'Eligible', NULL)
 ON CONFLICT (phone_number) DO NOTHING;
 
 -- Sample Campaigns
