@@ -11,7 +11,8 @@ async function fetchDonors(filters = {}) {
     try {
         if (!supabase) throw new Error('Supabase not initialized');
         
-        let query = supabase.from('donors').select('*');
+        // Use the view with calculated eligibility
+        let query = supabase.from('donors_with_eligibility').select('*');
         
         // Apply filters based on actual schema
         if (filters.bloodType) {
@@ -24,8 +25,8 @@ async function fetchDonors(filters = {}) {
             query = query.eq('city', filters.city);
         }
         if (filters.isEligible !== undefined) {
-            const status = filters.isEligible ? 'Eligible' : 'Ineligible';
-            query = query.eq('eligibility_status', status);
+            const status = filters.isEligible ? 'Eligible' : 'Deferred';
+            query = query.eq('calculated_eligibility', status);
         }
         if (filters.search) {
             query = query.or(`first_name.ilike.%${filters.search}%,last_name.ilike.%${filters.search}%,phone_number.ilike.%${filters.search}%`);
@@ -43,7 +44,8 @@ async function fetchDonors(filters = {}) {
             full_name: `${donor.first_name} ${donor.last_name}`,
             blood_type: `${donor.abo_group}${donor.rh_factor}`,
             phone: donor.phone_number,
-            is_eligible: donor.eligibility_status === 'Eligible',
+            is_eligible: donor.calculated_eligibility === 'Eligible',
+            eligibility_status: donor.calculated_eligibility, // Add this for compatibility
             last_donation: donor.last_donation_date
         })) || [];
     } catch (error) {

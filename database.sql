@@ -147,6 +147,24 @@ CREATE INDEX idx_campaigns_dates ON campaigns(start_date, end_date);
 -- VIEWS FOR EASY QUERYING (3NF normalized data)
 -- =====================================================
 
+-- View: Donors with calculated eligibility status
+CREATE OR REPLACE VIEW donors_with_eligibility AS
+SELECT 
+    d.*,
+    CASE 
+        WHEN d.last_donation_date IS NULL THEN 'Eligible'
+        WHEN d.last_donation_date + INTERVAL '56 days' <= CURRENT_DATE THEN 'Eligible'
+        WHEN d.last_donation_date + INTERVAL '56 days' > CURRENT_DATE THEN 'Deferred'
+        ELSE 'Eligible'
+    END as calculated_eligibility,
+    CURRENT_DATE - d.last_donation_date as days_since_last_donation,
+    CASE 
+        WHEN d.last_donation_date IS NOT NULL AND d.last_donation_date + INTERVAL '56 days' > CURRENT_DATE 
+        THEN (d.last_donation_date + INTERVAL '56 days') - CURRENT_DATE
+        ELSE 0
+    END as days_until_eligible
+FROM donors d;
+
 -- View: Get blood type from inventory (derived from donors via donations)
 CREATE OR REPLACE VIEW inventory_with_blood_type AS
 SELECT 
@@ -302,18 +320,12 @@ AFTER INSERT OR UPDATE ON donations
 FOR EACH ROW
 EXECUTE FUNCTION create_inventory_on_accepted_donation();
 
--- Trigger 2: Update donor's last donation date and eligibility
+-- Trigger 2: Update donor's last donation date
 CREATE OR REPLACE FUNCTION update_donor_on_donation()
 RETURNS TRIGGER AS $$
 BEGIN
     UPDATE donors
-    SET 
-        last_donation_date = NEW.donation_timestamp::date,
-        eligibility_status = CASE 
-            WHEN NEW.donation_timestamp + INTERVAL '56 days' > NOW() 
-            THEN 'Deferred' 
-            ELSE 'Eligible' 
-        END
+    SET last_donation_date = NEW.donation_timestamp::date
     WHERE donor_id = NEW.donor_id;
     
     RETURN NEW;
