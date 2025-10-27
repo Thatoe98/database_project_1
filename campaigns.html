@@ -41,29 +41,147 @@
             <header class="page-header">
                 <div class="header-content">
                     <div class="page-title">
-                        <div><h1>Campaigns</h1>
-                        <div class="breadcrumb"><span>Home</span><span>/</span><span>Campaigns</span></div></div>
+                        <div>
+                            <h1>Campaigns Management</h1>
+                            <div class="breadcrumb"><span>Home</span><span>/</span><span>Campaigns</span></div>
+                        </div>
                     </div>
                     <div class="header-actions">
-                        <button class="btn btn-primary" onclick="showToast('Feature coming soon!', 'info')">➕ Schedule Campaign</button>
+                        <button class="btn btn-primary" onclick="openCampaignModal()">
+                            <span>➕</span> Schedule Campaign
+                        </button>
                     </div>
                 </div>
             </header>
+
             <div class="page-content">
-                <div class="card">
-                    <div class="card-header"><h2 class="card-title">Campaigns</h2></div>
+                <!-- Search and Filters -->
+                <div class="card" style="margin-bottom: 1.5rem;">
                     <div class="card-body">
-                        <div class="empty-state">
-                            <div class="empty-state-icon">🚧</div>
-                            <h3>Page Under Construction</h3>
-                            <p>This page is being developed. Please refer to PAGE_CREATION_GUIDE.md for implementation details.</p>
-                            <a href="index.html" class="btn btn-primary" style="margin-top: 1rem; text-decoration: none;">← Back to Dashboard</a>
+                        <div class="search-bar">
+                            <div class="search-input-wrapper">
+                                <span class="search-icon">🔍</span>
+                                <input type="text" id="searchInput" class="search-input" placeholder="Search by name or location..." onkeyup="handleSearch()">
+                            </div>
+                            <button class="btn btn-outline" onclick="resetFilters()">Reset Filters</button>
+                        </div>
+                        
+                        <div class="filters">
+                            <div class="filter-group">
+                                <label>Hospital</label>
+                                <select id="filterHospital" class="form-control" onchange="applyFilters()">
+                                    <option value="">All Hospitals</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label>Status</label>
+                                <select id="filterStatus" class="form-control" onchange="applyFilters()">
+                                    <option value="">All</option>
+                                    <option value="upcoming">Upcoming</option>
+                                    <option value="ongoing">Ongoing</option>
+                                    <option value="completed">Completed</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group" style="margin-top: 1.5rem;">
+                                <button class="btn btn-secondary btn-sm" onclick="exportToCSV('campaignsTable', 'campaigns.csv')">
+                                    📥 Export CSV
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Campaigns Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">All Campaigns (<span id="campaignCount">0</span>)</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="table" id="campaignsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Campaign Name</th>
+                                        <th>Hospital</th>
+                                        <th>Location</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="campaignsTableBody">
+                                    <tr>
+                                        <td colspan="7" style="text-align: center; padding: 2rem;">
+                                            <div class="loading"></div>
+                                            <p>Loading campaigns...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
+
+    <!-- Add/Edit Campaign Modal -->
+    <div class="modal-overlay" id="campaignModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Schedule Campaign</h2>
+                <button class="modal-close" onclick="closeCampaignModal()">×</button>
+            </div>
+            <form id="campaignForm" onsubmit="saveCampaign(event)">
+                <div class="modal-body">
+                    <input type="hidden" id="campaignId">
+                    
+                    <div class="form-group">
+                        <label class="form-label">Campaign Name <span class="required">*</span></label>
+                        <input type="text" id="name" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Hospital <span class="required">*</span></label>
+                        <select id="hospitalId" class="form-control" required>
+                            <option value="">Select Hospital...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Location <span class="required">*</span></label>
+                        <textarea id="location" class="form-control" rows="2" required></textarea>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Start Date <span class="required">*</span></label>
+                            <input type="date" id="startDate" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">End Date <span class="required">*</span></label>
+                            <input type="date" id="endDate" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Notes</label>
+                        <textarea id="notes" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeCampaignModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Save Campaign</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="toast-container"></div>
     
     <!-- <script src="env-local.js"></script> -->
@@ -81,5 +199,204 @@
     <script src="js/supabase.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/main.js"></script>
+    
+    <script>
+        let allCampaigns = [];
+        let allHospitals = [];
+
+        async function loadCampaigns() {
+            try {
+                showLoading();
+                [allCampaigns, allHospitals] = await Promise.all([
+                    fetchCampaigns(),
+                    fetchHospitals()
+                ]);
+                displayCampaigns();
+                populateHospitalFilters();
+                hideLoading();
+            } catch (error) {
+                hideLoading();
+                showToast('Failed to load campaigns: ' + error.message, 'error');
+            }
+        }
+
+        function displayCampaigns() {
+            const tbody = document.getElementById('campaignsTableBody');
+            const filteredCampaigns = getFilteredCampaigns();
+            document.getElementById('campaignCount').textContent = filteredCampaigns.length;
+            
+            if (filteredCampaigns.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><p>No campaigns found</p></td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filteredCampaigns.map(campaign => {
+                const status = getCampaignStatus(campaign.start_date, campaign.end_date);
+                const statusBadge = status === 'ongoing' ? 'badge-success' : 
+                                  status === 'upcoming' ? 'badge-info' : 'badge-secondary';
+                
+                return `
+                    <tr>
+                        <td><strong>${campaign.name}</strong></td>
+                        <td>${campaign.hospital_name || 'N/A'}</td>
+                        <td>${campaign.location}</td>
+                        <td>${formatDateReadable(campaign.start_date)}</td>
+                        <td>${formatDateReadable(campaign.end_date)}</td>
+                        <td><span class="badge ${statusBadge}">${status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
+                        <td class="table-actions">
+                            <button class="btn btn-sm btn-primary" onclick="editCampaign('${campaign.campaign_id}')">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteCampaign('${campaign.campaign_id}')">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getCampaignStatus(startDate, endDate) {
+            const now = new Date();
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            
+            if (now < start) return 'upcoming';
+            if (now > end) return 'completed';
+            return 'ongoing';
+        }
+
+        function getFilteredCampaigns() {
+            let filtered = [...allCampaigns];
+            
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            if (searchTerm) {
+                filtered = filtered.filter(c => 
+                    c.name.toLowerCase().includes(searchTerm) || 
+                    c.location.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            const hospital = document.getElementById('filterHospital').value;
+            if (hospital) filtered = filtered.filter(c => c.hospital_id === hospital);
+            
+            const status = document.getElementById('filterStatus').value;
+            if (status) {
+                filtered = filtered.filter(c => getCampaignStatus(c.start_date, c.end_date) === status);
+            }
+            
+            return filtered;
+        }
+
+        const handleSearch = debounce(() => applyFilters(), 300);
+
+        function applyFilters() {
+            displayCampaigns();
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('filterHospital').value = '';
+            document.getElementById('filterStatus').value = '';
+            applyFilters();
+        }
+
+        function populateHospitalFilters() {
+            const filterSelect = document.getElementById('filterHospital');
+            const modalSelect = document.getElementById('hospitalId');
+            
+            const options = allHospitals.map(h => 
+                `<option value="${h.hospital_id}">${h.name}</option>`
+            ).join('');
+            
+            filterSelect.innerHTML = '<option value="">All Hospitals</option>' + options;
+            modalSelect.innerHTML = '<option value="">Select Hospital...</option>' + options;
+        }
+
+        function openCampaignModal(campaignId = null) {
+            document.getElementById('modalTitle').textContent = campaignId ? 'Edit Campaign' : 'Schedule Campaign';
+            document.getElementById('campaignForm').reset();
+            document.getElementById('campaignId').value = campaignId || '';
+            
+            if (campaignId) {
+                const campaign = allCampaigns.find(c => c.campaign_id === campaignId);
+                if (campaign) {
+                    document.getElementById('name').value = campaign.name;
+                    document.getElementById('hospitalId').value = campaign.hospital_id;
+                    document.getElementById('location').value = campaign.location;
+                    document.getElementById('startDate').value = campaign.start_date;
+                    document.getElementById('endDate').value = campaign.end_date;
+                    document.getElementById('notes').value = campaign.notes || '';
+                }
+            }
+            
+            toggleModal('campaignModal', true);
+        }
+
+        function closeCampaignModal() {
+            toggleModal('campaignModal', false);
+        }
+
+        async function saveCampaign(event) {
+            event.preventDefault();
+            
+            const campaignId = document.getElementById('campaignId').value;
+            const campaignData = {
+                name: document.getElementById('name').value,
+                hospital_id: document.getElementById('hospitalId').value,
+                location: document.getElementById('location').value,
+                start_date: document.getElementById('startDate').value,
+                end_date: document.getElementById('endDate').value,
+                notes: document.getElementById('notes').value || null
+            };
+            
+            // Validate dates
+            if (new Date(campaignData.end_date) < new Date(campaignData.start_date)) {
+                showToast('End date must be after start date', 'error');
+                return;
+            }
+            
+            try {
+                document.getElementById('submitBtn').disabled = true;
+                
+                if (campaignId) {
+                    await updateRecord('campaigns', campaignId, 'campaign_id', campaignData);
+                    showToast('Campaign updated successfully', 'success');
+                } else {
+                    await insertRecord('campaigns', campaignData);
+                    showToast('Campaign scheduled successfully', 'success');
+                }
+                
+                closeCampaignModal();
+                await loadCampaigns();
+            } catch (error) {
+                showToast('Error saving campaign: ' + error.message, 'error');
+            } finally {
+                document.getElementById('submitBtn').disabled = false;
+            }
+        }
+
+        function editCampaign(campaignId) {
+            openCampaignModal(campaignId);
+        }
+
+        async function deleteCampaign(campaignId) {
+            const campaign = allCampaigns.find(c => c.campaign_id === campaignId);
+            if (!campaign) return;
+            
+            showConfirmDialog(
+                `Are you sure you want to delete "${campaign.name}"?`,
+                async () => {
+                    try {
+                        await deleteRecord('campaigns', campaignId, 'campaign_id');
+                        showToast('Campaign deleted successfully', 'success');
+                        await loadCampaigns();
+                    } catch (error) {
+                        showToast('Error deleting campaign: ' + error.message, 'error');
+                    }
+                }
+            );
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(loadCampaigns, 500);
+        });
+    </script>
 </body>
 </html>

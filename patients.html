@@ -41,29 +41,180 @@
             <header class="page-header">
                 <div class="header-content">
                     <div class="page-title">
-                        <div><h1>Patients</h1>
-                        <div class="breadcrumb"><span>Home</span><span>/</span><span>Patients</span></div></div>
+                        <div>
+                            <h1>Patients Management</h1>
+                            <div class="breadcrumb"><span>Home</span><span>/</span><span>Patients</span></div>
+                        </div>
                     </div>
                     <div class="header-actions">
-                        <button class="btn btn-primary" onclick="showToast('Feature coming soon!', 'info')">➕ Register Patient</button>
+                        <button class="btn btn-primary" onclick="openPatientModal()">
+                            <span>➕</span> Register Patient
+                        </button>
                     </div>
                 </div>
             </header>
+
             <div class="page-content">
-                <div class="card">
-                    <div class="card-header"><h2 class="card-title">Patients</h2></div>
+                <!-- Search and Filters -->
+                <div class="card" style="margin-bottom: 1.5rem;">
                     <div class="card-body">
-                        <div class="empty-state">
-                            <div class="empty-state-icon">🚧</div>
-                            <h3>Page Under Construction</h3>
-                            <p>This page is being developed. Please refer to PAGE_CREATION_GUIDE.md for implementation details.</p>
-                            <a href="index.html" class="btn btn-primary" style="margin-top: 1rem; text-decoration: none;">← Back to Dashboard</a>
+                        <div class="search-bar">
+                            <div class="search-input-wrapper">
+                                <span class="search-icon">🔍</span>
+                                <input type="text" id="searchInput" class="search-input" placeholder="Search by name or case number..." onkeyup="handleSearch()">
+                            </div>
+                            <button class="btn btn-outline" onclick="resetFilters()">Reset Filters</button>
+                        </div>
+                        
+                        <div class="filters">
+                            <div class="filter-group">
+                                <label>Hospital</label>
+                                <select id="filterHospital" class="form-control" onchange="applyFilters()">
+                                    <option value="">All Hospitals</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label>Blood Type</label>
+                                <select id="filterBloodType" class="form-control" onchange="applyFilters()">
+                                    <option value="">All Types</option>
+                                    <option value="A+">A+</option>
+                                    <option value="A-">A-</option>
+                                    <option value="B+">B+</option>
+                                    <option value="B-">B-</option>
+                                    <option value="AB+">AB+</option>
+                                    <option value="AB-">AB-</option>
+                                    <option value="O+">O+</option>
+                                    <option value="O-">O-</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group" style="margin-top: 1.5rem;">
+                                <button class="btn btn-secondary btn-sm" onclick="exportToCSV('patientsTable', 'patients.csv')">
+                                    📥 Export CSV
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Patients Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">All Patients (<span id="patientCount">0</span>)</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="table" id="patientsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Case No</th>
+                                        <th>Name</th>
+                                        <th>Blood Type</th>
+                                        <th>Age</th>
+                                        <th>Gender</th>
+                                        <th>Hospital</th>
+                                        <th>Diagnosis</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="patientsTableBody">
+                                    <tr>
+                                        <td colspan="8" style="text-align: center; padding: 2rem;">
+                                            <div class="loading"></div>
+                                            <p>Loading patients...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
+
+    <!-- Add/Edit Patient Modal -->
+    <div class="modal-overlay" id="patientModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Register Patient</h2>
+                <button class="modal-close" onclick="closePatientModal()">×</button>
+            </div>
+            <form id="patientForm" onsubmit="savePatient(event)">
+                <div class="modal-body">
+                    <input type="hidden" id="patientId">
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Case Number <span class="required">*</span></label>
+                            <input type="text" id="caseNo" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Hospital <span class="required">*</span></label>
+                            <select id="hospitalId" class="form-control" required>
+                                <option value="">Select Hospital...</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Full Name <span class="required">*</span></label>
+                        <input type="text" id="fullName" class="form-control" required>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Date of Birth <span class="required">*</span></label>
+                            <input type="date" id="dateOfBirth" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Gender <span class="required">*</span></label>
+                            <select id="gender" class="form-control" required>
+                                <option value="">Select...</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Blood Type <span class="required">*</span></label>
+                        <select id="bloodType" class="form-control" required>
+                            <option value="">Select...</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Diagnosis</label>
+                        <textarea id="diagnosis" class="form-control" rows="2"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Notes</label>
+                        <textarea id="notes" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closePatientModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Save Patient</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="toast-container"></div>
     
     <!-- <script src="env-local.js"></script> -->
@@ -81,5 +232,205 @@
     <script src="js/supabase.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/main.js"></script>
+    
+    <script>
+        let allPatients = [];
+        let allHospitals = [];
+
+        async function loadPatients() {
+            try {
+                showLoading();
+                [allPatients, allHospitals] = await Promise.all([
+                    fetchPatients(),
+                    fetchHospitals()
+                ]);
+                displayPatients();
+                populateHospitalFilters();
+                hideLoading();
+            } catch (error) {
+                hideLoading();
+                showToast('Failed to load patients: ' + error.message, 'error');
+            }
+        }
+
+        function displayPatients() {
+            const tbody = document.getElementById('patientsTableBody');
+            const filteredPatients = getFilteredPatients();
+            document.getElementById('patientCount').textContent = filteredPatients.length;
+            
+            if (filteredPatients.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><p>No patients found</p></td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filteredPatients.map(patient => {
+                const age = calculateAge(patient.date_of_birth);
+                const bloodType = `${patient.abo_group}${patient.rh_factor}`;
+                
+                return `
+                    <tr>
+                        <td><strong>${patient.case_no}</strong></td>
+                        <td>${patient.first_name} ${patient.last_name}</td>
+                        <td><span class="badge badge-info">${bloodType}</span></td>
+                        <td>${age} years</td>
+                        <td>${patient.sex}</td>
+                        <td>${patient.hospital_name || 'N/A'}</td>
+                        <td>${patient.diagnosis || 'N/A'}</td>
+                        <td class="table-actions">
+                            <button class="btn btn-sm btn-primary" onclick="editPatient('${patient.patient_id}')">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="deletePatient('${patient.patient_id}')">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getFilteredPatients() {
+            let filtered = [...allPatients];
+            
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            if (searchTerm) {
+                filtered = filtered.filter(p => 
+                    `${p.first_name} ${p.last_name}`.toLowerCase().includes(searchTerm) || 
+                    p.case_no.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            const hospital = document.getElementById('filterHospital').value;
+            if (hospital) filtered = filtered.filter(p => p.hospital_id === hospital);
+            
+            const bloodType = document.getElementById('filterBloodType').value;
+            if (bloodType) {
+                const abo = bloodType.replace(/[+-]/g, '');
+                const rh = bloodType.includes('+') ? '+' : '-';
+                filtered = filtered.filter(p => p.abo_group === abo && p.rh_factor === rh);
+            }
+            
+            return filtered;
+        }
+
+        const handleSearch = debounce(() => applyFilters(), 300);
+
+        function applyFilters() {
+            displayPatients();
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('filterHospital').value = '';
+            document.getElementById('filterBloodType').value = '';
+            applyFilters();
+        }
+
+        function populateHospitalFilters() {
+            const filterSelect = document.getElementById('filterHospital');
+            const modalSelect = document.getElementById('hospitalId');
+            
+            const options = allHospitals.map(h => 
+                `<option value="${h.hospital_id}">${h.name}</option>`
+            ).join('');
+            
+            filterSelect.innerHTML = '<option value="">All Hospitals</option>' + options;
+            modalSelect.innerHTML = '<option value="">Select Hospital...</option>' + options;
+        }
+
+        function openPatientModal(patientId = null) {
+            document.getElementById('modalTitle').textContent = patientId ? 'Edit Patient' : 'Register Patient';
+            document.getElementById('patientForm').reset();
+            document.getElementById('patientId').value = patientId || '';
+            
+            if (patientId) {
+                const patient = allPatients.find(p => p.patient_id === patientId);
+                if (patient) {
+                    document.getElementById('caseNo').value = patient.case_no;
+                    document.getElementById('hospitalId').value = patient.hospital_id;
+                    document.getElementById('fullName').value = `${patient.first_name} ${patient.last_name}`;
+                    document.getElementById('dateOfBirth').value = patient.date_of_birth;
+                    document.getElementById('gender').value = patient.sex;
+                    document.getElementById('bloodType').value = `${patient.abo_group}${patient.rh_factor}`;
+                    document.getElementById('diagnosis').value = patient.diagnosis || '';
+                    document.getElementById('notes').value = patient.notes || '';
+                }
+            }
+            
+            toggleModal('patientModal', true);
+        }
+
+        function closePatientModal() {
+            toggleModal('patientModal', false);
+        }
+
+        async function savePatient(event) {
+            event.preventDefault();
+            
+            const patientId = document.getElementById('patientId').value;
+            const fullName = document.getElementById('fullName').value.trim();
+            const nameParts = fullName.split(' ');
+            const firstName = nameParts[0] || '';
+            const lastName = nameParts.slice(1).join(' ') || nameParts[0];
+            
+            const bloodType = document.getElementById('bloodType').value;
+            const aboGroup = bloodType.replace(/[+-]/g, '');
+            const rhFactor = bloodType.includes('+') ? '+' : '-';
+            
+            const patientData = {
+                case_no: document.getElementById('caseNo').value,
+                hospital_id: document.getElementById('hospitalId').value,
+                first_name: firstName,
+                last_name: lastName,
+                date_of_birth: document.getElementById('dateOfBirth').value,
+                sex: document.getElementById('gender').value,
+                abo_group: aboGroup,
+                rh_factor: rhFactor,
+                diagnosis: document.getElementById('diagnosis').value || null,
+                notes: document.getElementById('notes').value || null
+            };
+            
+            try {
+                document.getElementById('submitBtn').disabled = true;
+                
+                if (patientId) {
+                    await updateRecord('patients', patientId, 'patient_id', patientData);
+                    showToast('Patient updated successfully', 'success');
+                } else {
+                    await insertRecord('patients', patientData);
+                    showToast('Patient registered successfully', 'success');
+                }
+                
+                closePatientModal();
+                await loadPatients();
+            } catch (error) {
+                showToast('Error saving patient: ' + error.message, 'error');
+            } finally {
+                document.getElementById('submitBtn').disabled = false;
+            }
+        }
+
+        function editPatient(patientId) {
+            openPatientModal(patientId);
+        }
+
+        async function deletePatient(patientId) {
+            const patient = allPatients.find(p => p.patient_id === patientId);
+            if (!patient) return;
+            
+            showConfirmDialog(
+                `Are you sure you want to delete patient ${patient.first_name} ${patient.last_name} (${patient.case_no})?`,
+                async () => {
+                    try {
+                        await deleteRecord('patients', patientId, 'patient_id');
+                        showToast('Patient deleted successfully', 'success');
+                        await loadPatients();
+                    } catch (error) {
+                        showToast('Error deleting patient: ' + error.message, 'error');
+                    }
+                }
+            );
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(loadPatients, 500);
+        });
+    </script>
 </body>
 </html>

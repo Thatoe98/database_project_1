@@ -41,29 +41,162 @@
             <header class="page-header">
                 <div class="header-content">
                     <div class="page-title">
-                        <div><h1>Hospitals Management</h1>
-                        <div class="breadcrumb"><span>Home</span><span>/</span><span>Hospitals</span></div></div>
+                        <div>
+                            <h1>Hospitals Management</h1>
+                            <div class="breadcrumb"><span>Home</span><span>/</span><span>Hospitals</span></div>
+                        </div>
                     </div>
                     <div class="header-actions">
-                        <button class="btn btn-primary" onclick="showToast('Feature coming soon!', 'info')">➕ Register Hospital</button>
+                        <button class="btn btn-primary" onclick="openHospitalModal()">
+                            <span>➕</span> Register Hospital
+                        </button>
                     </div>
                 </div>
             </header>
+
             <div class="page-content">
-                <div class="card">
-                    <div class="card-header"><h2 class="card-title">Hospitals</h2></div>
+                <!-- Search and Filters -->
+                <div class="card" style="margin-bottom: 1.5rem;">
                     <div class="card-body">
-                        <div class="empty-state">
-                            <div class="empty-state-icon">🚧</div>
-                            <h3>Page Under Construction</h3>
-                            <p>This page is being developed. Please refer to PAGE_CREATION_GUIDE.md for implementation details.</p>
-                            <a href="index.html" class="btn btn-primary" style="margin-top: 1rem; text-decoration: none;">← Back to Dashboard</a>
+                        <div class="search-bar">
+                            <div class="search-input-wrapper">
+                                <span class="search-icon">🔍</span>
+                                <input type="text" id="searchInput" class="search-input" placeholder="Search by name, city, or phone..." onkeyup="handleSearch()">
+                            </div>
+                            <button class="btn btn-outline" onclick="resetFilters()">Reset Filters</button>
+                        </div>
+                        
+                        <div class="filters">
+                            <div class="filter-group">
+                                <label>Type</label>
+                                <select id="filterType" class="form-control" onchange="applyFilters()">
+                                    <option value="">All Types</option>
+                                    <option value="Public">Public</option>
+                                    <option value="Private">Private</option>
+                                    <option value="Non-profit">Non-profit</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label>City</label>
+                                <select id="filterCity" class="form-control" onchange="applyFilters()">
+                                    <option value="">All Cities</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group" style="margin-top: 1.5rem;">
+                                <button class="btn btn-secondary btn-sm" onclick="exportToCSV('hospitalsTable', 'hospitals.csv')">
+                                    📥 Export CSV
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hospitals Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">All Hospitals (<span id="hospitalCount">0</span>)</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="table" id="hospitalsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Type</th>
+                                        <th>City</th>
+                                        <th>Phone</th>
+                                        <th>Email</th>
+                                        <th>Address</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="hospitalsTableBody">
+                                    <tr>
+                                        <td colspan="7" style="text-align: center; padding: 2rem;">
+                                            <div class="loading"></div>
+                                            <p>Loading hospitals...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
+
+    <!-- Add/Edit Hospital Modal -->
+    <div class="modal-overlay" id="hospitalModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Register Hospital</h2>
+                <button class="modal-close" onclick="closeHospitalModal()">×</button>
+            </div>
+            <form id="hospitalForm" onsubmit="saveHospital(event)">
+                <div class="modal-body">
+                    <input type="hidden" id="hospitalId">
+                    
+                    <div class="form-group">
+                        <label class="form-label">Hospital Name <span class="required">*</span></label>
+                        <input type="text" id="name" class="form-control" required>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Type</label>
+                            <select id="type" class="form-control">
+                                <option value="">Select...</option>
+                                <option value="Public">Public</option>
+                                <option value="Private">Private</option>
+                                <option value="Non-profit">Non-profit</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Phone <span class="required">*</span></label>
+                            <input type="tel" id="phone" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="email" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Address <span class="required">*</span></label>
+                        <textarea id="address" class="form-control" rows="2" required></textarea>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">City <span class="required">*</span></label>
+                            <input type="text" id="city" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">State <span class="required">*</span></label>
+                            <input type="text" id="state" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Postal Code <span class="required">*</span></label>
+                            <input type="text" id="postalCode" class="form-control" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeHospitalModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Save Hospital</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="toast-container"></div>
     
     <!-- <script src="env-local.js"></script> -->
@@ -81,5 +214,182 @@
     <script src="js/supabase.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/main.js"></script>
+    
+    <script>
+        let allHospitals = [];
+
+        async function loadHospitals() {
+            try {
+                showLoading();
+                allHospitals = await fetchHospitals();
+                displayHospitals();
+                populateCityFilter();
+                hideLoading();
+            } catch (error) {
+                hideLoading();
+                showToast('Failed to load hospitals: ' + error.message, 'error');
+            }
+        }
+
+        function displayHospitals() {
+            const tbody = document.getElementById('hospitalsTableBody');
+            const filteredHospitals = getFilteredHospitals();
+            document.getElementById('hospitalCount').textContent = filteredHospitals.length;
+            
+            if (filteredHospitals.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><p>No hospitals found</p></td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filteredHospitals.map(hospital => {
+                const typeBadge = hospital.type ? 
+                    `<span class="badge badge-${hospital.type === 'Public' ? 'success' : hospital.type === 'Private' ? 'primary' : 'info'}">${hospital.type}</span>` :
+                    '<span class="badge badge-secondary">N/A</span>';
+
+                return `
+                    <tr>
+                        <td><strong>${hospital.name}</strong></td>
+                        <td>${typeBadge}</td>
+                        <td>${hospital.city}</td>
+                        <td>${formatPhoneNumber(hospital.phone)}</td>
+                        <td>${hospital.email || 'N/A'}</td>
+                        <td>${hospital.address}, ${hospital.state} ${hospital.postal_code}</td>
+                        <td class="table-actions">
+                            <button class="btn btn-sm btn-primary" onclick="editHospital('${hospital.hospital_id}')">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteHospital('${hospital.hospital_id}')">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getFilteredHospitals() {
+            let filtered = [...allHospitals];
+            
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            if (searchTerm) {
+                filtered = filtered.filter(h => 
+                    h.name.toLowerCase().includes(searchTerm) || 
+                    h.city.toLowerCase().includes(searchTerm) ||
+                    h.phone.includes(searchTerm)
+                );
+            }
+            
+            const type = document.getElementById('filterType').value;
+            if (type) filtered = filtered.filter(h => h.type === type);
+            
+            const city = document.getElementById('filterCity').value;
+            if (city) filtered = filtered.filter(h => h.city === city);
+            
+            return filtered;
+        }
+
+        const handleSearch = debounce(() => applyFilters(), 300);
+
+        function applyFilters() {
+            displayHospitals();
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('filterType').value = '';
+            document.getElementById('filterCity').value = '';
+            applyFilters();
+        }
+
+        function populateCityFilter() {
+            const cities = [...new Set(allHospitals.map(h => h.city).filter(c => c))].sort();
+            const select = document.getElementById('filterCity');
+            select.innerHTML = '<option value="">All Cities</option>' + 
+                cities.map(city => `<option value="${city}">${city}</option>`).join('');
+        }
+
+        function openHospitalModal(hospitalId = null) {
+            document.getElementById('modalTitle').textContent = hospitalId ? 'Edit Hospital' : 'Register Hospital';
+            document.getElementById('hospitalForm').reset();
+            document.getElementById('hospitalId').value = hospitalId || '';
+            
+            if (hospitalId) {
+                const hospital = allHospitals.find(h => h.hospital_id === hospitalId);
+                if (hospital) {
+                    document.getElementById('name').value = hospital.name;
+                    document.getElementById('type').value = hospital.type || '';
+                    document.getElementById('phone').value = hospital.phone;
+                    document.getElementById('email').value = hospital.email || '';
+                    document.getElementById('address').value = hospital.address;
+                    document.getElementById('city').value = hospital.city;
+                    document.getElementById('state').value = hospital.state;
+                    document.getElementById('postalCode').value = hospital.postal_code;
+                }
+            }
+            
+            toggleModal('hospitalModal', true);
+        }
+
+        function closeHospitalModal() {
+            toggleModal('hospitalModal', false);
+        }
+
+        async function saveHospital(event) {
+            event.preventDefault();
+            
+            const hospitalId = document.getElementById('hospitalId').value;
+            const hospitalData = {
+                name: document.getElementById('name').value,
+                type: document.getElementById('type').value || null,
+                phone: document.getElementById('phone').value,
+                email: document.getElementById('email').value || null,
+                address: document.getElementById('address').value,
+                city: document.getElementById('city').value,
+                state: document.getElementById('state').value,
+                postal_code: document.getElementById('postalCode').value
+            };
+            
+            try {
+                document.getElementById('submitBtn').disabled = true;
+                
+                if (hospitalId) {
+                    await updateRecord('hospitals', hospitalId, 'hospital_id', hospitalData);
+                    showToast('Hospital updated successfully', 'success');
+                } else {
+                    await insertRecord('hospitals', hospitalData);
+                    showToast('Hospital registered successfully', 'success');
+                }
+                
+                closeHospitalModal();
+                await loadHospitals();
+            } catch (error) {
+                showToast('Error saving hospital: ' + error.message, 'error');
+            } finally {
+                document.getElementById('submitBtn').disabled = false;
+            }
+        }
+
+        function editHospital(hospitalId) {
+            openHospitalModal(hospitalId);
+        }
+
+        async function deleteHospital(hospitalId) {
+            const hospital = allHospitals.find(h => h.hospital_id === hospitalId);
+            if (!hospital) return;
+            
+            showConfirmDialog(
+                `Are you sure you want to delete ${hospital.name}? This will also delete all associated records.`,
+                async () => {
+                    try {
+                        await deleteRecord('hospitals', hospitalId, 'hospital_id');
+                        showToast('Hospital deleted successfully', 'success');
+                        await loadHospitals();
+                    } catch (error) {
+                        showToast('Error deleting hospital: ' + error.message, 'error');
+                    }
+                }
+            );
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(loadHospitals, 500);
+        });
+    </script>
 </body>
 </html>

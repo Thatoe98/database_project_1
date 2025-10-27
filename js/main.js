@@ -76,6 +76,50 @@ async function fetchBloodInventory() {
 }
 
 /**
+ * Fetch blood inventory summary (aggregated by blood type)
+ */
+async function fetchBloodInventorySummary() {
+    try {
+        if (!supabase) throw new Error('Supabase not initialized');
+        
+        // Fetch all blood types and their counts
+        const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+        const inventory = await fetchBloodInventory();
+        
+        // Aggregate by blood type
+        const summary = bloodTypes.map(bloodType => {
+            const units = inventory.filter(item => item.blood_type === bloodType);
+            const totalUnits = units.length;
+            const availableUnits = units.filter(u => u.status === 'Available').length;
+            const reservedUnits = units.filter(u => u.status === 'Reserved').length;
+            const minimum_threshold = 10; // Default threshold
+            
+            // Get latest update time
+            const lastUpdated = units.length > 0 
+                ? units.reduce((latest, item) => {
+                    const itemDate = new Date(item.created_at);
+                    return itemDate > latest ? itemDate : latest;
+                  }, new Date(0))
+                : new Date();
+            
+            return {
+                blood_type: bloodType,
+                total_units: totalUnits,
+                available_units: availableUnits,
+                reserved_units: reservedUnits,
+                minimum_threshold,
+                last_updated: lastUpdated.toISOString()
+            };
+        });
+        
+        return summary;
+    } catch (error) {
+        console.error('Error fetching inventory summary:', error);
+        throw error;
+    }
+}
+
+/**
  * Update blood inventory
  */
 async function updateBloodInventory(inventoryId, updates) {

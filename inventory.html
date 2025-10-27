@@ -168,7 +168,7 @@
         async function loadInventory() {
             try {
                 showLoading();
-                inventory = await fetchBloodInventory();
+                inventory = await fetchBloodInventorySummary();
                 displayInventory();
                 displayInventoryTable();
                 updateStatistics();
