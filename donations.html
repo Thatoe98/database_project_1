@@ -41,29 +41,186 @@
             <header class="page-header">
                 <div class="header-content">
                     <div class="page-title">
-                        <div><h1>Donations Management</h1>
-                        <div class="breadcrumb"><span>Home</span><span>/</span><span>Donations</span></div></div>
+                        <div>
+                            <h1>Donations Management</h1>
+                            <div class="breadcrumb"><span>Home</span><span>/</span><span>Donations</span></div>
+                        </div>
                     </div>
                     <div class="header-actions">
-                        <button class="btn btn-primary" onclick="showToast('Feature coming soon!', 'info')">➕ Record Donation</button>
+                        <button class="btn btn-primary" onclick="openDonationModal()">
+                            <span>➕</span> Record Donation
+                        </button>
                     </div>
                 </div>
             </header>
+
             <div class="page-content">
-                <div class="card">
-                    <div class="card-header"><h2 class="card-title">Donations</h2></div>
+                <!-- Search and Filters -->
+                <div class="card" style="margin-bottom: 1.5rem;">
                     <div class="card-body">
-                        <div class="empty-state">
-                            <div class="empty-state-icon">🚧</div>
-                            <h3>Page Under Construction</h3>
-                            <p>This page is being developed. Please refer to PAGE_CREATION_GUIDE.md for implementation details.</p>
-                            <a href="index.html" class="btn btn-primary" style="margin-top: 1rem; text-decoration: none;">← Back to Dashboard</a>
+                        <div class="search-bar">
+                            <div class="search-input-wrapper">
+                                <span class="search-icon">🔍</span>
+                                <input type="text" id="searchInput" class="search-input" placeholder="Search by donor name..." onkeyup="handleSearch()">
+                            </div>
+                            <button class="btn btn-outline" onclick="resetFilters()">Reset Filters</button>
+                        </div>
+                        
+                        <div class="filters">
+                            <div class="filter-group">
+                                <label>Blood Type</label>
+                                <select id="filterBloodType" class="form-control" onchange="applyFilters()">
+                                    <option value="">All Types</option>
+                                    <option value="A+">A+</option>
+                                    <option value="A-">A-</option>
+                                    <option value="B+">B+</option>
+                                    <option value="B-">B-</option>
+                                    <option value="AB+">AB+</option>
+                                    <option value="AB-">AB-</option>
+                                    <option value="O+">O+</option>
+                                    <option value="O-">O-</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label>Test Result</label>
+                                <select id="filterTestResult" class="form-control" onchange="applyFilters()">
+                                    <option value="">All</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Accepted">Accepted</option>
+                                    <option value="Rejected">Rejected</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label>Hospital</label>
+                                <select id="filterHospital" class="form-control" onchange="applyFilters()">
+                                    <option value="">All Hospitals</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group" style="margin-top: 1.5rem;">
+                                <button class="btn btn-secondary btn-sm" onclick="exportToCSV('donationsTable', 'donations.csv')">
+                                    📥 Export CSV
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Donations Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">All Donations (<span id="donationCount">0</span>)</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="table" id="donationsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Donor</th>
+                                        <th>Blood Type</th>
+                                        <th>Hospital</th>
+                                        <th>Campaign</th>
+                                        <th>Date & Time</th>
+                                        <th>Quantity (ml)</th>
+                                        <th>Hemoglobin</th>
+                                        <th>Test Result</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="donationsTableBody">
+                                    <tr>
+                                        <td colspan="9" style="text-align: center; padding: 2rem;">
+                                            <div class="loading"></div>
+                                            <p>Loading donations...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
+
+    <!-- Add/Edit Donation Modal -->
+    <div class="modal-overlay" id="donationModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Record Donation</h2>
+                <button class="modal-close" onclick="closeDonationModal()">×</button>
+            </div>
+            <form id="donationForm" onsubmit="saveDonation(event)">
+                <div class="modal-body">
+                    <input type="hidden" id="donationId">
+                    
+                    <div class="form-group">
+                        <label class="form-label">Donor <span class="required">*</span></label>
+                        <select id="donorId" class="form-control" required>
+                            <option value="">Select Donor...</option>
+                        </select>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Hospital <span class="required">*</span></label>
+                            <select id="hospitalId" class="form-control" required>
+                                <option value="">Select Hospital...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Campaign (Optional)</label>
+                            <select id="campaignId" class="form-control">
+                                <option value="">None</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Donation Date & Time <span class="required">*</span></label>
+                            <input type="datetime-local" id="donationTimestamp" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Quantity (ml) <span class="required">*</span></label>
+                            <input type="number" id="quantityMl" class="form-control" value="450" min="100" max="500" required>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Hemoglobin Level (g/dL)</label>
+                            <input type="number" id="hemoglobinLevel" class="form-control" step="0.1" min="0" max="20">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Test Result <span class="required">*</span></label>
+                            <select id="testResult" class="form-control" required>
+                                <option value="Pending">Pending</option>
+                                <option value="Accepted">Accepted</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Notes</label>
+                        <textarea id="notes" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeDonationModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Save Donation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="toast-container"></div>
     
     <!-- <script src="env-local.js"></script> -->
@@ -81,5 +238,225 @@
     <script src="js/supabase.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/main.js"></script>
+    
+    <script>
+        let allDonations = [];
+        let allDonors = [];
+        let allHospitals = [];
+        let allCampaigns = [];
+
+        async function loadDonations() {
+            try {
+                showLoading();
+                [allDonations, allDonors, allHospitals, allCampaigns] = await Promise.all([
+                    fetchDonations(),
+                    fetchDonors(),
+                    fetchHospitals(),
+                    fetchCampaigns()
+                ]);
+                displayDonations();
+                populateFiltersAndDropdowns();
+                hideLoading();
+            } catch (error) {
+                hideLoading();
+                showToast('Failed to load donations: ' + error.message, 'error');
+            }
+        }
+
+        function displayDonations() {
+            const tbody = document.getElementById('donationsTableBody');
+            const filteredDonations = getFilteredDonations();
+            document.getElementById('donationCount').textContent = filteredDonations.length;
+            
+            if (filteredDonations.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-state"><p>No donations found</p></td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filteredDonations.map(donation => {
+                const testBadge = donation.test_result === 'Accepted' ? 'badge-success' :
+                                 donation.test_result === 'Rejected' ? 'badge-danger' : 'badge-warning';
+                
+                return `
+                    <tr>
+                        <td><strong>${donation.donor_name || 'Unknown'}</strong></td>
+                        <td><span class="badge badge-info">${donation.blood_type || 'N/A'}</span></td>
+                        <td>${donation.hospital_name || 'N/A'}</td>
+                        <td>${donation.campaign_name || 'Walk-in'}</td>
+                        <td>${formatDateTime(donation.donation_timestamp)}</td>
+                        <td>${donation.quantity_ml} ml</td>
+                        <td>${donation.hemoglobin_level ? donation.hemoglobin_level + ' g/dL' : 'N/A'}</td>
+                        <td><span class="badge ${testBadge}">${donation.test_result}</span></td>
+                        <td class="table-actions">
+                            <button class="btn btn-sm btn-primary" onclick="editDonation('${donation.donation_id}')">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteDonation('${donation.donation_id}')">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getFilteredDonations() {
+            let filtered = [...allDonations];
+            
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            if (searchTerm) {
+                filtered = filtered.filter(d => 
+                    (d.donor_name || '').toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            const bloodType = document.getElementById('filterBloodType').value;
+            if (bloodType) filtered = filtered.filter(d => d.blood_type === bloodType);
+            
+            const testResult = document.getElementById('filterTestResult').value;
+            if (testResult) filtered = filtered.filter(d => d.test_result === testResult);
+            
+            const hospital = document.getElementById('filterHospital').value;
+            if (hospital) filtered = filtered.filter(d => d.hospital_id === hospital);
+            
+            return filtered;
+        }
+
+        const handleSearch = debounce(() => applyFilters(), 300);
+
+        function applyFilters() {
+            displayDonations();
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('filterBloodType').value = '';
+            document.getElementById('filterTestResult').value = '';
+            document.getElementById('filterHospital').value = '';
+            applyFilters();
+        }
+
+        function populateFiltersAndDropdowns() {
+            // Populate hospital filter and dropdown
+            const hospitalFilter = document.getElementById('filterHospital');
+            const hospitalDropdown = document.getElementById('hospitalId');
+            const hospitalOptions = allHospitals.map(h => 
+                `<option value="${h.hospital_id}">${h.name}</option>`
+            ).join('');
+            hospitalFilter.innerHTML = '<option value="">All Hospitals</option>' + hospitalOptions;
+            hospitalDropdown.innerHTML = '<option value="">Select Hospital...</option>' + hospitalOptions;
+            
+            // Populate donor dropdown
+            const donorDropdown = document.getElementById('donorId');
+            const donorOptions = allDonors
+                .filter(d => d.is_eligible) // Only show eligible donors
+                .map(d => 
+                    `<option value="${d.donor_id}">${d.full_name} (${d.blood_type})</option>`
+                ).join('');
+            donorDropdown.innerHTML = '<option value="">Select Donor...</option>' + donorOptions;
+            
+            // Populate campaign dropdown
+            const campaignDropdown = document.getElementById('campaignId');
+            const campaignOptions = allCampaigns.map(c => 
+                `<option value="${c.campaign_id}">${c.name}</option>`
+            ).join('');
+            campaignDropdown.innerHTML = '<option value="">None</option>' + campaignOptions;
+        }
+
+        function openDonationModal(donationId = null) {
+            document.getElementById('modalTitle').textContent = donationId ? 'Edit Donation' : 'Record Donation';
+            document.getElementById('donationForm').reset();
+            document.getElementById('donationId').value = donationId || '';
+            
+            // Set default timestamp to now
+            if (!donationId) {
+                const now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                document.getElementById('donationTimestamp').value = now.toISOString().slice(0, 16);
+            }
+            
+            if (donationId) {
+                const donation = allDonations.find(d => d.donation_id === donationId);
+                if (donation) {
+                    document.getElementById('donorId').value = donation.donor_id;
+                    document.getElementById('hospitalId').value = donation.hospital_id;
+                    document.getElementById('campaignId').value = donation.campaign_id || '';
+                    
+                    // Format timestamp for datetime-local input
+                    const timestamp = new Date(donation.donation_timestamp);
+                    timestamp.setMinutes(timestamp.getMinutes() - timestamp.getTimezoneOffset());
+                    document.getElementById('donationTimestamp').value = timestamp.toISOString().slice(0, 16);
+                    
+                    document.getElementById('quantityMl').value = donation.quantity_ml;
+                    document.getElementById('hemoglobinLevel').value = donation.hemoglobin_level || '';
+                    document.getElementById('testResult').value = donation.test_result;
+                    document.getElementById('notes').value = donation.notes || '';
+                }
+            }
+            
+            toggleModal('donationModal', true);
+        }
+
+        function closeDonationModal() {
+            toggleModal('donationModal', false);
+        }
+
+        async function saveDonation(event) {
+            event.preventDefault();
+            
+            const donationId = document.getElementById('donationId').value;
+            const donationData = {
+                donor_id: document.getElementById('donorId').value,
+                hospital_id: document.getElementById('hospitalId').value,
+                campaign_id: document.getElementById('campaignId').value || null,
+                donation_timestamp: document.getElementById('donationTimestamp').value,
+                quantity_ml: parseInt(document.getElementById('quantityMl').value),
+                hemoglobin_level: document.getElementById('hemoglobinLevel').value || null,
+                test_result: document.getElementById('testResult').value,
+                notes: document.getElementById('notes').value || null
+            };
+            
+            try {
+                document.getElementById('submitBtn').disabled = true;
+                
+                if (donationId) {
+                    await updateRecord('donations', donationId, 'donation_id', donationData);
+                    showToast('Donation updated successfully', 'success');
+                } else {
+                    await insertRecord('donations', donationData);
+                    showToast('Donation recorded successfully', 'success');
+                }
+                
+                closeDonationModal();
+                await loadDonations();
+            } catch (error) {
+                showToast('Error saving donation: ' + error.message, 'error');
+            } finally {
+                document.getElementById('submitBtn').disabled = false;
+            }
+        }
+
+        function editDonation(donationId) {
+            openDonationModal(donationId);
+        }
+
+        async function deleteDonation(donationId) {
+            const donation = allDonations.find(d => d.donation_id === donationId);
+            if (!donation) return;
+            
+            showConfirmDialog(
+                `Are you sure you want to delete this donation from ${donation.donor_name}?`,
+                async () => {
+                    try {
+                        await deleteRecord('donations', donationId, 'donation_id');
+                        showToast('Donation deleted successfully', 'success');
+                        await loadDonations();
+                    } catch (error) {
+                        showToast('Error deleting donation: ' + error.message, 'error');
+                    }
+                }
+            );
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(loadDonations, 500);
+        });
+    </script>
 </body>
 </html>
