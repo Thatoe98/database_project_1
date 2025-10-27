@@ -153,14 +153,14 @@ async function fetchHospitals(filters = {}) {
         if (filters.city) {
             query = query.eq('city', filters.city);
         }
-        if (filters.isActive !== undefined) {
-            query = query.eq('is_active', filters.isActive);
+        if (filters.type) {
+            query = query.eq('type', filters.type);
         }
         if (filters.search) {
-            query = query.or(`hospital_name.ilike.%${filters.search}%,phone.ilike.%${filters.search}%`);
+            query = query.or(`name.ilike.%${filters.search}%,phone.ilike.%${filters.search}%`);
         }
         
-        query = query.order('hospital_name');
+        query = query.order('name');
         
         const { data, error } = await query;
         
@@ -202,7 +202,12 @@ async function fetchPatients(filters = {}) {
         const { data, error } = await query;
         
         if (error) throw error;
-        return data;
+        
+        // Map hospital name for frontend
+        return data?.map(patient => ({
+            ...patient,
+            hospital_name: patient.hospitals?.name || 'N/A'
+        })) || [];
     } catch (error) {
         console.error('Error fetching patients:', error);
         throw error;
@@ -221,25 +226,34 @@ async function fetchDonations(filters = {}) {
             .select(`
                 *,
                 donors (first_name, last_name, phone_number, abo_group, rh_factor),
+                hospitals (name),
                 campaigns (name)
             `);
         
         if (filters.bloodType) {
             query = query.eq('blood_type', filters.bloodType);
         }
-        if (filters.status) {
-            query = query.eq('status', filters.status);
+        if (filters.testResult) {
+            query = query.eq('test_result', filters.testResult);
         }
         if (filters.donorId) {
             query = query.eq('donor_id', filters.donorId);
         }
         
-        query = query.order('donation_date', { ascending: false });
+        query = query.order('donation_timestamp', { ascending: false });
         
         const { data, error } = await query;
         
         if (error) throw error;
-        return data;
+        
+        // Map data for frontend
+        return data?.map(donation => ({
+            ...donation,
+            donor_name: donation.donors ? `${donation.donors.first_name} ${donation.donors.last_name}` : 'Unknown',
+            blood_type: donation.donors ? `${donation.donors.abo_group}${donation.donors.rh_factor}` : 'N/A',
+            hospital_name: donation.hospitals?.name || 'N/A',
+            campaign_name: donation.campaigns?.name || null
+        })) || [];
     } catch (error) {
         console.error('Error fetching donations:', error);
         throw error;
@@ -272,7 +286,12 @@ async function fetchCampaigns(filters = {}) {
         const { data, error } = await query;
         
         if (error) throw error;
-        return data;
+        
+        // Map hospital name for frontend
+        return data?.map(campaign => ({
+            ...campaign,
+            hospital_name: campaign.hospitals?.name || 'N/A'
+        })) || [];
     } catch (error) {
         console.error('Error fetching campaigns:', error);
         throw error;
@@ -376,7 +395,7 @@ async function getRecentActivity(limit = 10) {
         // Recent patients
         const { data: patients } = await supabase
             .from('patients')
-            .select('created_at, hospitals(hospital_name), blood_type, status')
+            .select('created_at, hospitals(name), blood_type')
             .order('created_at', { ascending: false })
             .limit(limit);
         
